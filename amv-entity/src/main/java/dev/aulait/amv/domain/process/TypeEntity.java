@@ -58,7 +58,7 @@ public class TypeEntity extends dev.aulait.amv.arch.jpa.BaseEntity implements ja
   private Integer unsolvedCnt;
 
   @Column(name = "unsolved_rate")
-  private String unsolvedRate;
+  private java.math.BigDecimal unsolvedRate;
 
   @Builder.Default
   @OneToMany(fetch = FetchType.LAZY)

@@ -54,7 +54,9 @@ CREATE TABLE type (
   data_name VARCHAR(255),
   method_cnt INT DEFAULT 0,
   unsolved_cnt INT DEFAULT 0,
-  unsolved_rate FLOAT4 DEFAULT 0,
+  -- TODO: Change to FLOAT4 after support of jpa-entity-generator.
+  -- unsolved_rate FLOAT4 DEFAULT 0,
+  unsolved_rate NUMERIC DEFAULT 0,
   --{commonColumns}
 );
 
