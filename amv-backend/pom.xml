@@ -487,6 +487,21 @@
           jdbc:${db.kind}://${it.db.host}:${db.port}/${db.name}?currentSchema=${db.schema}</quarkus.datasource.jdbc.url>
       </properties>
     </profile>
+
+    <profile>
+      <id>push-image</id>
+
+      <properties>
+        <maven.test.skip>true</maven.test.skip>
+        <quarkus.container-image.build>true</quarkus.container-image.build>
+        <quarkus.container-image.push>true</quarkus.container-image.push>
+        <quarkus.docker.buildx.platform>linux/amd64,linux/arm64</quarkus.docker.buildx.platform>
+      </properties>
+
+      <build>
+        <defaultGoal>package</defaultGoal>
+      </build>
+    </profile>
   </profiles>
 
 </project>

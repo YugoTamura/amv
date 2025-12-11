@@ -66,8 +66,8 @@
       <arg line="login -u ${docker.username} -p ${docker.password}" />
     </exec>
 
-    <exec executable="docker" failonerror="true">
-      <arg line="push ${container.image}" />
+    <exec executable="${mvn.cmd}" dir="${prjdir}" failonerror="true">
+      <arg line="-P push-image" />
     </exec>
 
     <if>
@@ -75,17 +75,12 @@
         <matches string="${project.version}" pattern="^.*-SNAPSHOT$" />
       </not>
       <then>
-        <property name="target-image"
-          value="${quarkus.container-image.group}/${quarkus.container-image.name}:${project.version}" />
 
-        <exec executable="docker" failonerror="true">
-          <arg line="tag ${container.image} " />
-          <arg line="${target-image}" />
+        <exec executable="${mvn.cmd}" dir="${prjdir}" failonerror="true">
+          <arg line="-P push-image " />
+          <arg line="-D quarkus.container-image.tag=${project.version}" />
         </exec>
 
-        <exec executable="docker" failonerror="true">
-          <arg line="push ${target-image}" />
-        </exec>
       </then>
     </if>
   </target>
