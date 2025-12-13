@@ -1,16 +1,11 @@
 package dev.aulait.amv.domain.extractor.java;
 
-import com.github.javaparser.ast.expr.MethodCallExpr;
 import dev.aulait.amv.domain.extractor.fdo.CrudPointFdo;
 import dev.aulait.amv.domain.extractor.fdo.InheritedTypeFdo;
-import dev.aulait.amv.domain.extractor.fdo.MethodCallFdo;
 import dev.aulait.amv.domain.extractor.fdo.MethodFdo;
 import dev.aulait.amv.domain.extractor.fdo.TypeFdo;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.lang3.StringUtils;
 
 public class SpringDataJpaAdjuster implements MetadataAdjuster {
@@ -121,34 +116,5 @@ public class SpringDataJpaAdjuster implements MetadataAdjuster {
 
     entityType = namespaceStart + entityType;
     method.getCrudPoints().add(CrudPointFdo.builder().type(entityType).crud("R").build());
-  }
-
-  @Override
-  public void adjust(MethodCallExpr expr, MethodCallFdo fdo) {
-    Optional<String> ownerType = JavaParserUtils.resolveMethodOwnerType(expr);
-
-    if (ownerType.isPresent()
-        && StringUtils.equalsAny(
-            ownerType.get(),
-            "org.springframework.data.repository.CrudRepository",
-            "org.springframework.data.repository.ListCrudRepository",
-            "org.springframework.data.jpa.repository.JpaRepository")) {
-
-      String type = expr.getScope().get().calculateResolvedType().describe();
-      String method = expr.getNameAsString();
-      String args =
-          expr.getArguments().stream()
-              .map(JavaParserUtils::resolveType)
-              .map(this::generalizeType)
-              .collect(Collectors.joining(", "));
-
-      fdo.setFallbackSignature(fdo.getQualifiedSignature());
-      fdo.setQualifiedSignature(type + "." + method + "(" + args + ")");
-    }
-  }
-
-  String generalizeType(String typeStr) {
-    return RegExUtils.replaceAll(
-        typeStr, "java.util.Set|java.util.List|java.util.Collection", "java.lang.Iterable");
   }
 }
