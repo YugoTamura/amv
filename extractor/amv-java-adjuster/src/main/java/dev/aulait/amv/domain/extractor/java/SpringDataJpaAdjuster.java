@@ -40,7 +40,7 @@ public class SpringDataJpaAdjuster implements MetadataAdjuster {
 
     MethodFdo save = new MethodFdo();
     save.setName("save");
-    save.setQualifiedSignature(type.getQualifiedName() + ".save(java.lang.Object)");
+    save.setQualifiedSignature(type.getQualifiedName() + ".save(S)");
     methods.add(save);
 
     save.getCrudPoints().add(CrudPointFdo.builder().type(entityType).crud("C").build());
@@ -78,7 +78,7 @@ public class SpringDataJpaAdjuster implements MetadataAdjuster {
 
     MethodFdo saveAndFlush = new MethodFdo();
     saveAndFlush.setName("saveAndFlush");
-    saveAndFlush.setQualifiedSignature(type.getQualifiedName() + ".saveAndFlush(java.lang.Object)");
+    saveAndFlush.setQualifiedSignature(type.getQualifiedName() + ".saveAndFlush(S)");
     methods.add(saveAndFlush);
 
     saveAndFlush.getCrudPoints().add(CrudPointFdo.builder().type(entityType).crud("C").build());
