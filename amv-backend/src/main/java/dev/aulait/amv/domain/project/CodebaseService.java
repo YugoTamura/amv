@@ -10,18 +10,14 @@ import dev.aulait.amv.arch.util.ShortUuidUtils;
 import dev.aulait.sqb.SearchCriteria;
 import dev.aulait.sqb.SearchResult;
 import dev.aulait.sqb.jpa.JpaSearchQueryExecutor;
+import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.context.control.ActivateRequestContext;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -38,6 +34,13 @@ public class CodebaseService {
   private final JpaSearchQueryExecutor searchExecutor;
   private final CodebaseLogic logic;
   private final ProjectService projectService;
+  private final ProjectRepository projectRepository;
+
+  @PostConstruct
+  public void init() {
+    logic.setAnalysisStatusResolver(asyncService::isRunning);
+    logic.setProjectStatusResolver(projectService::isLoaded);
+  }
 
   public CodebaseEntity find(String id) {
     return findByIdAsResource(codebaseRepository, id);
@@ -47,30 +50,18 @@ public class CodebaseService {
     CodebaseEntity codebase = findByIdAsResource(codebaseRepository, id);
 
     List<ProjectEntity> projects = projectService.findByCodebase(id);
-    return buildAggregate(codebase, projects);
+    return logic.buildAggregate(codebase, projects);
   }
 
   public List<CodebaseAggregate> findAllWithProjects() {
-    Map<CodebaseEntity, List<CodebaseProjection>> projectsByCodebase =
-        codebaseRepository.findAllWithProjects().stream()
-            .collect(Collectors.groupingBy(CodebaseProjection::getCodebase));
-
-    return projectsByCodebase.entrySet().stream().map(this::toAggregate).toList();
+    List<ProjectEntity> projects = projectRepository.findAll();
+    return logic.aggregate(projects);
   }
 
   @Transactional
   public CodebaseEntity save(CodebaseEntity entity) {
     if (entity.getId() == null) {
       entity.setId(ShortUuidUtils.generate());
-    } else {
-      Optional<CodebaseEntity> codebaseOpt = codebaseRepository.findById(entity.getId());
-      codebaseOpt.ifPresent(
-          existing -> {
-            entity.setCommitHash(existing.getCommitHash());
-            entity.setBranch(existing.getBranch());
-            entity.setAnalyzedAt(existing.getAnalyzedAt());
-            entity.setAnalyzedIn(existing.getAnalyzedIn());
-          });
     }
     if (StringUtils.isEmpty(entity.getName())) {
       entity.setName(GitUtils.extractRootDirName(entity.getUrl()));
@@ -140,40 +131,5 @@ public class CodebaseService {
     CodebaseEntity codebase = find(codebaseId);
     codebase.setAnalyzedAt(LocalDateTime.now());
     codebase.setAnalyzedIn(durationMs);
-  }
-
-  private CodebaseAggregate toAggregate(Map.Entry<CodebaseEntity, List<CodebaseProjection>> entry) {
-
-    CodebaseEntity codebase = entry.getKey();
-
-    List<ProjectEntity> projects =
-        entry.getValue().stream()
-            .map(CodebaseProjection::getProject)
-            .filter(Objects::nonNull)
-            .toList();
-
-    return buildAggregate(codebase, projects);
-  }
-
-  private CodebaseAggregate buildAggregate(CodebaseEntity codebase, List<ProjectEntity> projects) {
-    return CodebaseAggregate.builder()
-        .codebase(codebase)
-        .projects(projects)
-        .status(buildStatus(codebase))
-        .build();
-  }
-
-  private CodebaseStatusVo buildStatus(CodebaseEntity codebase) {
-    boolean metadataExtracted =
-        Files.exists(
-            DirectoryManager.getExtractionDir(codebase.getName(), codebase.getCommitHash())
-                .resolve(".done"));
-
-    return CodebaseStatusVo.builder()
-        .analyzing(asyncService.isRunning(codebase.getId()))
-        .checkedOut(logic.exists(codebase))
-        .projectsLoaded(projectService.isLoaded(codebase))
-        .metadataExtracted(metadataExtracted)
-        .build();
   }
 }
