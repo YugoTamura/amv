@@ -123,17 +123,9 @@ public class ProcessFactory {
     Map<String, MethodCallEntity> id2entity = new HashMap<>();
 
     for (MethodCallFdo methodCallF : methodF.getMethodCalls()) {
-      MethodCallEntity methodCallE =
-          f2e(
-              methodCallF,
-              methodE.getId().getTypeId(),
-              methodE.getId().getSeqNo(),
-              methodE.getMethodCalls().size() + 1);
-      methodE.getMethodCalls().add(methodCallE);
+      MethodCallEntity methodCallE = f2e(methodCallF, methodE);
 
-      if (methodCallE.getFlowStatement() != null) {
-        methodCallE.getFlowStatement().setMethod(methodE);
-      }
+      methodE.getMethodCalls().add(methodCallE);
 
       fdo2entity.put(methodCallF, methodCallE);
       id2entity.put(methodCallF.getId(), methodCallE);
@@ -186,9 +178,13 @@ public class ProcessFactory {
     return entity;
   }
 
-  MethodCallEntity f2e(MethodCallFdo fdo, String typeId, int methodSeqNo, int seqNo) {
+  MethodCallEntity f2e(MethodCallFdo fdo, MethodEntity method) {
     MethodCallEntityId id =
-        MethodCallEntityId.builder().typeId(typeId).methodSeqNo(methodSeqNo).seqNo(seqNo).build();
+        MethodCallEntityId.builder()
+            .typeId(method.getId().getTypeId())
+            .methodSeqNo(method.getId().getSeqNo())
+            .seqNo(method.getMethodCalls().size() + 1)
+            .build();
 
     MethodCallEntity entity = new MethodCallEntity();
     entity.setId(id);
@@ -200,21 +196,22 @@ public class ProcessFactory {
     entity.setArgumentTypes(fdo.getArgumentTypes().stream().collect(Collectors.joining(",")));
 
     if (fdo.getFlowStatement() != null) {
-      entity.setFlowStatement(f2e(fdo.getFlowStatement()));
+      entity.setFlowStatement(f2e(fdo.getFlowStatement(), method));
     }
 
     return entity;
   }
 
-  FlowStatementEntity f2e(FlowStatementFdo fdo) {
+  FlowStatementEntity f2e(FlowStatementFdo flowStatementF, MethodEntity methodE) {
     FlowStatementEntity entity = new FlowStatementEntity();
     entity.setId(ShortUuidUtils.generate());
-    entity.setKind(fdo.getKind());
-    entity.setContent(fdo.getContent());
-    entity.setLineNo(fdo.getLineNo());
+    entity.setKind(flowStatementF.getKind());
+    entity.setContent(flowStatementF.getContent());
+    entity.setLineNo(flowStatementF.getLineNo());
+    entity.setMethod(methodE);
 
-    if (fdo.getParent() != null) {
-      FlowStatementEntity parent = f2e(fdo.getParent());
+    if (flowStatementF.getParent() != null) {
+      FlowStatementEntity parent = f2e(flowStatementF.getParent(), methodE);
       entity.setFlowStatement(parent);
     }
 
