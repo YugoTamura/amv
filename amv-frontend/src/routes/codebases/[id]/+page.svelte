@@ -76,7 +76,7 @@
   <div>
     <span>{m.status()}</span>
     {#if analyzing}
-      <span aria-busy="true">{m.analyzing()}</span>
+      <span id="analyzing" aria-busy="true">{m.analyzing()}</span>
     {/if}
   </div>
 

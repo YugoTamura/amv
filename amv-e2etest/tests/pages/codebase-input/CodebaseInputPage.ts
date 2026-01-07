@@ -23,6 +23,11 @@ export default class CodebaseInputPage {
     await this.codebaseInputPageEl.expectSavedSuccessfully();
   }
 
+  async expectAnalyzedSuccessfully() {
+    await this.codebaseInputPageEl.expectAnalyzing();
+    await this.codebaseInputPageEl.expectAnalyzedSuccessfully();
+  }
+
   async expectCodebase(codebase: CodebaseModel) {
     await this.codebaseInputPageEl.expectProjects(codebase.projects);
   }

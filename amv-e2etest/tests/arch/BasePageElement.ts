@@ -114,6 +114,18 @@ export default abstract class BasePageElement {
     await this.click(`a:text-is("${text}")`);
   }
 
+  protected async expectExist(selector: string) {
+    await this.run(Action.EXPECT_VISIBLE, selector, () =>
+      expect(this.page.locator(selector)).toBeVisible()
+    );
+  }
+
+  protected async expectNotExist(selector: string) {
+    await this.run(Action.NONE, selector, () =>
+      expect(this.page.locator(selector)).toHaveCount(0, { timeout: 30_000 })
+    );
+  }
+
   protected async expectTextExist(selector: string, texts: string[]) {
     await this.run(Action.EXPECT_VISIBLE, texts.join(', '), () =>
       expect(this.page.locator(selector)).toHaveText(texts, { timeout: 30_000 })

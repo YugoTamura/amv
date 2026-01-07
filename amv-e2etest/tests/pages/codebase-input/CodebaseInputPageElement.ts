@@ -26,4 +26,13 @@ export default class CodebaseInputPageElement extends BasePageElement {
   async clickAnalyzeBtn() {
     await this.click('#analyze');
   }
+
+  async expectAnalyzing() {
+    await this.expectExist('#analyzing');
+    await this.expectNotExist('#analyzing');
+  }
+
+  async expectAnalyzedSuccessfully() {
+    await this.expectGlobalMessage(m.analyzeCompleted());
+  }
 }
