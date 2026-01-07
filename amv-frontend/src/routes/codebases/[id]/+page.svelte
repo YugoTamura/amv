@@ -87,7 +87,7 @@
   </ol>
 
   {m.projects()}
-  <article>
+  <article id="project">
     {#each codebase.projects as project, i}
       {#if i > 0},
       {/if}

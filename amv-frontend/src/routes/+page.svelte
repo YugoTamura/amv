@@ -20,7 +20,7 @@
 </script>
 
 <section>
-  <div class="codebase grid">
+  <div id="codebases" class="codebase grid">
     {#each codebases as codebase}
       <article>
         <h5>

@@ -104,4 +104,19 @@ export default abstract class BasePageElement {
   protected async clickInRow(text: any) {
     await this.click(`tr:has(td:has-text("${text}")) a`);
   }
+
+  protected async isLinkVisible(selector: string, text: string) {
+    await this.page.waitForSelector(selector);
+    return this.page.locator(`a:text-is("${text}")`).isVisible();
+  }
+
+  protected async clickLink(text: string) {
+    await this.click(`a:text-is("${text}")`);
+  }
+
+  protected async expectTextExist(selector: string, texts: string[]) {
+    await this.run(Action.EXPECT_VISIBLE, texts.join(', '), () =>
+      expect(this.page.locator(selector)).toHaveText(texts, { timeout: 30_000 })
+    );
+  }
 }

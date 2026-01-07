@@ -8,4 +8,16 @@ export default class TopPageElement extends BasePageElement {
   async open() {
     await super.open('/');
   }
+
+  isLinkVisibleByName(name?: string) {
+    return this.isLinkVisible('#codebases', name ?? '');
+  }
+
+  async clickNewCodebaseLink() {
+    await this.click('#addNewCodebase');
+  }
+
+  async clickCodebaseIdLink(name?: string) {
+    await this.clickLink(name ?? '');
+  }
 }
