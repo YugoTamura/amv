@@ -1,6 +1,8 @@
 {
   "additionalInfo": "補足情報",
   "analyze": "解析",
+  "analyzeCompleted": "解析が完了しました。",
+  "analyzing": "解析中...",
   "and": "他",
   "call": "呼び出し",
   "callHierarchy": "呼び出し階層",

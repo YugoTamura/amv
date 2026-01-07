@@ -1,6 +1,8 @@
 {
   "additionalInfo": "Additional Info",
   "analyze": "Analyze",
+  "analyzeCompleted": "Analyze Completed.",
+  "analyzing": "Analyzing...",
   "and": "...and",
   "call": "Call",
   "callHierarchy": "Call Hierarchy",

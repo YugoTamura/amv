@@ -27,6 +27,9 @@
     analyze = async () => {}
   }: Props = $props();
 
+  let analyzing = $derived(codebase.status?.analyzing ?? false);
+  let showDeleteModal = $state(false);
+
   const spec = {
     url: string().required()
   };
@@ -44,8 +47,6 @@
     }
   }
 
-  let showDeleteModal = $state(false);
-
   async function del() {
     const response = await ApiHandler.handle<string>(fetch, (api) =>
       api.codebases.delete(codebase.id, codebase)
@@ -58,17 +59,14 @@
   }
 </script>
 
-<form use:form>
+<form class="container narrow" use:form>
   <div>
-    <!-- TODO: implement m.label_codebase_url() and use it at (placeholder)-->
     <TextArea id="url" label={m.url()} bind:value={codebase.url} required={true} />
   </div>
   <div>
-    <!-- TODO: implement m.label_codebase_name() and use it at (placeholder)-->
     <InputField id="name" label={m.name()} bind:value={codebase.name} />
   </div>
   <div>
-    <!-- TODO: implement m.label_codebase_token() and use it at (placeholder)-->
     <InputField id="token" label={m.token()} bind:value={codebase.token} />
   </div>
   {#if renderExtra}
@@ -83,14 +81,27 @@
         id="save"
         value={updateMode ? m.update() : m.register()}
         data-handler={save}
+        disabled={analyzing}
       />
     </div>
     {#if updateMode}
       <div>
-        <input type="submit" id="analyze" value={m.analyze()} data-handler={analyze} />
+        <input
+          type="submit"
+          id="analyze"
+          value={m.analyze()}
+          data-handler={analyze}
+          disabled={analyzing}
+        />
       </div>
       <div>
-        <input type="button" id="del" value={m.delete()} onclick={() => (showDeleteModal = true)} />
+        <input
+          type="button"
+          id="del"
+          value={m.delete()}
+          onclick={() => (showDeleteModal = true)}
+          disabled={analyzing}
+        />
       </div>
     {/if}
   </div>

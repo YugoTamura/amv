@@ -10,10 +10,10 @@
 
   let { data }: PageProps = $props();
   let codebase = $state(data.codebase);
-  let analysing = $state(data.codebase.status.analyzing);
+  let analyzing = $state(data.codebase.status.analyzing);
 
   // svelte-ignore state_referenced_locally
-  if (analysing) {
+  if (analyzing) {
     reciveStatus(codebase.id);
   }
 
@@ -42,7 +42,7 @@
 
     websocket.addEventListener('open', () => {
       console.log('CONNECTED');
-      analysing = true;
+      analyzing = true;
     });
 
     websocket.addEventListener('message', async (event) => {
@@ -52,8 +52,9 @@
 
     websocket.addEventListener('close', async () => {
       console.log('DISCONNECTED');
-      analysing = false;
+      analyzing = false;
       await invalidateAll();
+      messageStore.show(m.analyzeCompleted());
     });
 
     websocket.addEventListener('error', (event) => {
@@ -61,11 +62,6 @@
     });
   }
 </script>
-
-{#if analysing}
-  analysing...
-  <progress></progress>
-{/if}
 
 <CodebaseForm
   bind:codebase
@@ -77,7 +73,13 @@
 />
 
 {#snippet renderExtra()}
-  {m.status()}
+  <div>
+    <span>{m.status()}</span>
+    {#if analyzing}
+      <span aria-busy="true">{m.analyzing()}</span>
+    {/if}
+  </div>
+
   <ol>
     <li><StatusIcon done={codebase.status.checkedOut} /> {m.checkedOut()}</li>
     <li><StatusIcon done={codebase.status.projectsLoaded} /> {m.projectsLoaded()}</li>

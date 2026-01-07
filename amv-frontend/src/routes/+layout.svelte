@@ -117,6 +117,10 @@
   }
 
   :global {
+    .container.narrow {
+      max-width: 700px;
+    }
+
     .del-color {
       color: var(--pico-del-color);
     }
