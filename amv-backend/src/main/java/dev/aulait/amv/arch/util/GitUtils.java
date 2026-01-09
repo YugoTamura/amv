@@ -54,7 +54,7 @@ public class GitUtils {
     String mirror = isMirror ? "--mirror" : "";
     gitCmd = StringSubstitutor.replace(gitCmd, Map.of("mirror", mirror));
 
-    int exitCode = ExecUtils.exec(gitCmd, Map.of("outDir", outDir, "url", url)).getExitCode();
+    int exitCode = ExecUtils.execWithExitCode(gitCmd, Map.of("outDir", outDir, "url", url));
 
     if (exitCode != 0) {
       throw new GitException("git clone failed. url=" + url);

@@ -27,14 +27,13 @@ public class ExecUtils {
     return exec(command, substitutionMap, workingDirectory).getStdout();
   }
 
+  public static int execWithExitCode(String command, Map<String, ?> substitutionMap) {
+    return exec(command, substitutionMap).getExitCode();
+  }
+
   public static int execWithExitCode(
       String command, Map<String, ?> substitutionMap, Map<String, String> environment) {
-    return exec(ExecParamVo.builder()
-            .command(command)
-            .substitutionMap(substitutionMap)
-            .environment(environment)
-            .build())
-        .getExitCode();
+    return exec(command, substitutionMap, environment).getExitCode();
   }
 
   public static ExecResultVo exec(String command) {
@@ -52,6 +51,16 @@ public class ExecUtils {
             .command(command)
             .substitutionMap(substitutionMap)
             .workingDirectory(workingDirectory)
+            .build());
+  }
+
+  public static ExecResultVo exec(
+      String command, Map<String, ?> substitutionMap, Map<String, String> environment) {
+    return exec(
+        ExecParamVo.builder()
+            .command(command)
+            .substitutionMap(substitutionMap)
+            .environment(environment)
             .build());
   }
 
