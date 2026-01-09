@@ -18,6 +18,25 @@ import org.apache.commons.lang3.SystemUtils;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ExecUtils {
 
+  public static String execWithStdout(String command, Map<String, ?> substitutionMap) {
+    return exec(command, substitutionMap).getStdout();
+  }
+
+  public static String execWithStdout(
+      String command, Map<String, ?> substitutionMap, Path workingDirectory) {
+    return exec(command, substitutionMap, workingDirectory).getStdout();
+  }
+
+  public static int execWithExitCode(
+      String command, Map<String, ?> substitutionMap, Map<String, String> environment) {
+    return exec(ExecParamVo.builder()
+            .command(command)
+            .substitutionMap(substitutionMap)
+            .environment(environment)
+            .build())
+        .getExitCode();
+  }
+
   public static ExecResultVo exec(String command) {
     return exec(command, Map.of());
   }
@@ -70,7 +89,7 @@ public class ExecUtils {
       throw new UncheckedIOException(e);
     }
 
-    return new ExecResultVo(exitCodeLocal, stdout.toString(), stderr.toString());
+    return new ExecResultVo(exitCodeLocal, stdout.toString().trim(), stderr.toString().trim());
   }
 
   /**

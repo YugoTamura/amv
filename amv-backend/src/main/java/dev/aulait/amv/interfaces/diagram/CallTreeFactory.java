@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.stream.IntStream;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 
 @ApplicationScoped
 @RequiredArgsConstructor
@@ -60,7 +61,7 @@ public class CallTreeFactory {
     long sameLevel = countSamePackageLevel(baseNamespace, method.getNamespace());
     element.getElementTags().add("same-package-" + sameLevel);
 
-    if (StringUtils.endsWithAny(
+    if (Strings.CS.endsWithAny(
         method.getType(),
         "Dto",
         "Entity",
@@ -71,20 +72,20 @@ public class CallTreeFactory {
         "FdoBuilder",
         "VoBuilder")) {
       element.getTypeTags().add("data");
-      if (StringUtils.startsWithAny(method.getName(), "get", "is")) {
+      if (Strings.CS.startsWithAny(method.getName(), "get", "is")) {
         element.getMethodTags().add("getter");
       }
 
-      if (StringUtils.startsWith(method.getName(), "set")) {
+      if (Strings.CS.startsWith(method.getName(), "set")) {
         element.getMethodTags().add("setter");
       }
     }
 
-    if (StringUtils.endsWithAny(
+    if (Strings.CS.endsWithAny(
         method.getType(), "DtoBuilder", "EntityBuilder", "FdoBuilder", "VoBuilder")) {
       element.getTypeTags().add("data");
 
-      if (!StringUtils.equals(method.getName(), "build")) {
+      if (!Strings.CS.equals(method.getName(), "build")) {
         element.getMethodTags().add("setter");
       }
     }

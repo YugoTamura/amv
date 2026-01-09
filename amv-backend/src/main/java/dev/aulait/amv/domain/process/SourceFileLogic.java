@@ -5,7 +5,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import java.util.Optional;
 import java.util.function.Function;
 import lombok.Setter;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 
 @ApplicationScoped
 public class SourceFileLogic {
@@ -29,7 +29,7 @@ public class SourceFileLogic {
   private String findUrl(SourceFileEntity sourceFile) {
 
     String codeBaseSite = sourceFile.getProject().getCodebase().getSite();
-    codeBaseSite = StringUtils.replace(codeBaseSite, "/git/", "/").replace(".git", "/blob/master/");
+    codeBaseSite = Strings.CS.replace(codeBaseSite, "/git/", "/").replace(".git", "/blob/master/");
 
     String projectPath = sourceFile.getProject().getPath();
 
@@ -38,7 +38,7 @@ public class SourceFileLogic {
 
   public String buildUrl(SourceFileLinkProjection link) {
     String codeBaseSite = link.getCodebaseSite();
-    codeBaseSite = StringUtils.replace(codeBaseSite, "/git/", "/").replace(".git", "/blob/master/");
+    codeBaseSite = Strings.CS.replace(codeBaseSite, "/git/", "/").replace(".git", "/blob/master/");
 
     String projectPath = link.getProjectPath();
     String sourceFilePath = link.getSourceFilePath();

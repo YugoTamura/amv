@@ -1,7 +1,7 @@
 package dev.aulait.amv.arch.util;
 
+import dev.aulait.amv.arch.exec.ExecUtils;
 import dev.aulait.amv.arch.file.FileUtils;
-import dev.aulait.amv.arch.util.ExecUtils.ExecResultVo;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
@@ -54,7 +54,7 @@ public class GitUtils {
     String mirror = isMirror ? "--mirror" : "";
     gitCmd = StringSubstitutor.replace(gitCmd, Map.of("mirror", mirror));
 
-    int exitCode = ExecUtils.exec(gitCmd, Map.of("outDir", outDir, "url", url));
+    int exitCode = ExecUtils.exec(gitCmd, Map.of("outDir", outDir, "url", url)).getExitCode();
 
     if (exitCode != 0) {
       throw new GitException("git clone failed. url=" + url);
@@ -76,7 +76,7 @@ public class GitUtils {
     Path askPassPath = createAskPass(token, id);
 
     int exitCode =
-        ExecUtils.exec(
+        ExecUtils.execWithExitCode(
             gitCmd,
             Map.of("outDir", outDir, "url", url),
             Map.of("GIT_ASKPASS", askPassPath.toAbsolutePath().toString()));
@@ -117,25 +117,19 @@ public class GitUtils {
   public static String getRemoteUrl(Path repoDir) {
     String gitCmd = "git -C ${repoDir} remote get-url origin";
 
-    ExecResultVo result = ExecUtils.execWithResult(gitCmd, Map.of("repoDir", repoDir));
-
-    return result.getOut();
+    return ExecUtils.execWithStdout(gitCmd, Map.of("repoDir", repoDir));
   }
 
   public static String getCurrentHash(Path repoDir) {
     String gitCmd = "git -C ${repoDir} rev-parse HEAD";
 
-    ExecResultVo result = ExecUtils.execWithResult(gitCmd, Map.of("repoDir", repoDir));
-
-    return result.getOut();
+    return ExecUtils.execWithStdout(gitCmd, Map.of("repoDir", repoDir));
   }
 
   public static String getCurrentBranch(Path repoDir) {
     String gitCmd = "git -C ${repoDir} rev-parse --abbrev-ref HEAD";
 
-    ExecResultVo result = ExecUtils.execWithResult(gitCmd, Map.of("repoDir", repoDir));
-
-    return result.getOut();
+    return ExecUtils.execWithStdout(gitCmd, Map.of("repoDir", repoDir));
   }
 
   public static class GitException extends RuntimeException {
