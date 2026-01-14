@@ -21,6 +21,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.apache.commons.lang3.time.StopWatch;
 
 @ApplicationScoped
@@ -118,7 +119,7 @@ public class CodebaseService {
     }
 
     if (StringUtils.isEmpty(codebase.getSite())) {
-      if (StringUtils.startsWith(codebase.getUrl(), "http")) {
+      if (Strings.CS.startsWith(codebase.getUrl(), "http")) {
         codebase.setSite(codebase.getUrl());
       } else {
         String remoteUrl = GitUtils.getRemoteUrl(Path.of(codebase.getUrl()));

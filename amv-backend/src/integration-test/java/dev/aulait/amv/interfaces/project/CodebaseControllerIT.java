@@ -7,8 +7,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import dev.aulait.amv.arch.async.AsyncExecStatus;
 import dev.aulait.amv.arch.async.AsyncExecWsClient;
 import dev.aulait.amv.arch.exception.ErrorResponseDto;
+import dev.aulait.amv.arch.exec.ExecUtils;
 import dev.aulait.amv.arch.file.FileUtils;
-import dev.aulait.amv.arch.util.ExecUtils;
 import dev.aulait.amv.interfaces.project.CodebaseController.CodebaseSearchResultDto;
 import jakarta.ws.rs.core.Response.Status;
 import java.nio.file.Path;
@@ -89,7 +89,7 @@ class CodebaseControllerIT {
     Path workingDirectory = Path.of("target");
 
     String dockerPsCmd = "docker ps -q -f \"name=amv-container-back\"";
-    String containerId = ExecUtils.execWithResult(dockerPsCmd, Map.of(), workingDirectory).getOut();
+    String containerId = ExecUtils.execWithStdout(dockerPsCmd, Map.of(), workingDirectory);
 
     String dockerCpCmd =
         String.format(
@@ -99,7 +99,7 @@ class CodebaseControllerIT {
     Path tgtFilePath = Path.of("target/README.md");
 
     // Copy the files cloned inside the container
-    ExecUtils.execWithResult(dockerCpCmd, Map.of(), workingDirectory);
+    ExecUtils.exec(dockerCpCmd, Map.of(), workingDirectory);
     String fileString = FileUtils.read(tgtFilePath);
 
     // Check if the contents of the file are correct

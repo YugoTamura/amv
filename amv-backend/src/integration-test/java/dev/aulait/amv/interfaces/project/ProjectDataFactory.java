@@ -9,10 +9,10 @@ public class ProjectDataFactory {
 
   public static ProjectDto createProject() {
     return ProjectDto.builder()
-        .id(RandomStringUtils.random(22, true, true))
-        .name(RandomStringUtils.random(36, true, true))
-        .path(RandomStringUtils.random(36, true, true))
-        // .sourceDirs(RandomStringUtils.random(36, true, true))
+        .id(RandomStringUtils.insecure().next(22, true, true))
+        .name(RandomStringUtils.insecure().next(36, true, true))
+        .path(RandomStringUtils.insecure().next(36, true, true))
+        // .sourceDirs(RandomStringUtils.insecure().next(36, true, true))
         .build();
   }
 }

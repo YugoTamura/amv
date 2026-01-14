@@ -9,9 +9,9 @@ public class CodebaseDataFactory {
 
   public static CodebaseDto createCodebase() {
     return CodebaseDto.builder()
-        .id(RandomStringUtils.random(22, true, true))
-        .name(RandomStringUtils.random(36, true, true))
-        .url(RandomStringUtils.random(36, true, true))
+        .id(RandomStringUtils.insecure().next(22, true, true))
+        .name(RandomStringUtils.insecure().next(36, true, true))
+        .url(RandomStringUtils.insecure().next(36, true, true))
         .build();
   }
 }
