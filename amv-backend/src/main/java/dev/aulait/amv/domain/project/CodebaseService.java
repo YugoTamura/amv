@@ -18,6 +18,7 @@ import jakarta.transaction.Transactional;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -54,6 +55,20 @@ public class CodebaseService {
     return logic.buildAggregate(codebase, projects);
   }
 
+  public Optional<CodebaseAggregate> findByNameWithProjects(String name) {
+    List<CodebaseProjection> projections = codebaseRepository.findWithProjectsByName(name);
+
+    if (projections.isEmpty()) {
+      return Optional.empty();
+    }
+
+    CodebaseEntity codebase = projections.getFirst().getCodebase();
+    List<ProjectEntity> projects =
+        projections.stream().map(CodebaseProjection::getProject).filter(p -> p != null).toList();
+
+    return Optional.of(logic.buildAggregate(codebase, projects));
+  }
+
   public List<CodebaseAggregate> findAllWithProjects() {
     List<ProjectEntity> projects = projectRepository.findAll();
     return logic.aggregate(projects);
@@ -67,14 +82,21 @@ public class CodebaseService {
     if (StringUtils.isEmpty(entity.getName())) {
       entity.setName(GitUtils.extractRootDirName(entity.getUrl()));
     }
+    if (StringUtils.isEmpty(entity.getUrl())) {
+      entity.setUrl(Path.of("").toAbsolutePath().getParent().normalize().toUri().toString());
+    }
     entity.setToken(SecurityUtils.encrypt(entity.getToken()));
+
     return codebaseRepository.save(entity);
   }
 
   @Transactional
   public void delete(CodebaseEntity entity) {
-    DirectoryManager.deleteExtractionDirs(entity.getName());
-    DirectoryManager.deleteCodebaseDir(entity.getName());
+    if (!logic.isFilesystem(entity)) {
+      // TODO: Ensure no garbage remains even in filesystem mode
+      DirectoryManager.deleteExtractionDirs(entity.getName());
+      DirectoryManager.deleteCodebaseDir(entity.getName());
+    }
 
     CodebaseEntity managedEntity = em.merge(entity);
     codebaseRepository.delete(managedEntity);
