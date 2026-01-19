@@ -14,6 +14,7 @@ import dev.aulait.amv.domain.extractor.fdo.TypeFdo;
 import dev.aulait.amv.domain.project.SourceFileEntity;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
@@ -29,7 +30,7 @@ public class ProcessFactory {
 
     source.getTypes().stream()
         .map(this::f2e)
-        .peek(type -> type.setSourceFile(sourceFile))
+        .peek(typeAggregate -> typeAggregate.getType().setSourceFile(sourceFile))
         .forEach(aggregate.getTypes()::add);
 
     return aggregate;
@@ -43,7 +44,9 @@ public class ProcessFactory {
     return entity;
   }
 
-  TypeEntity f2e(TypeFdo fdo) {
+  TypeAggregate f2e(TypeFdo fdo) {
+    TypeAggregate aggregate = new TypeAggregate();
+
     TypeEntity entity = new TypeEntity();
     String typeId = ShortUuidUtils.generate();
     entity.setId(typeId);
@@ -59,13 +62,16 @@ public class ProcessFactory {
 
     fdo.getMethods().stream()
         .map(method -> f2e(method, typeId, entity.getMethods().size() + 1))
-        .forEach(entity.getMethods()::add);
+        .peek(methodAggregate -> entity.getMethods().add(methodAggregate.getMethod()))
+        .forEach(aggregate.getMethods()::add);
 
     if (!fdo.getAnnotations().isEmpty()) {
       entity.setAnnotations(JsonUtils.obj2json(fdo.getAnnotations()));
     }
 
-    return entity;
+    aggregate.setType(entity);
+
+    return aggregate;
   }
 
   FieldEntity map(FieldFdo fdo, String typeId, int seqNo) {
@@ -79,7 +85,10 @@ public class ProcessFactory {
     return entity;
   }
 
-  MethodEntity f2e(MethodFdo fdo, String typeId, int seqNo) {
+  MethodAggregate f2e(MethodFdo fdo, String typeId, int seqNo) {
+
+    MethodAggregate aggregate = new MethodAggregate();
+
     MethodEntityId id = MethodEntityId.builder().typeId(typeId).seqNo(seqNo).build();
 
     MethodEntity entity = new MethodEntity();
@@ -98,7 +107,8 @@ public class ProcessFactory {
                 f2e(param, typeId, entity.getId().getSeqNo(), entity.getMethodParams().size() + 1))
         .forEach(entity.getMethodParams()::add);
 
-    collectMethodCall(fdo, entity);
+    collectFlowStatement(fdo, entity, aggregate);
+    collectMethodCall(fdo, entity, aggregate);
 
     if (!fdo.getAnnotations().isEmpty()) {
       entity.setAnnotations(JsonUtils.obj2json(fdo.getAnnotations()));
@@ -114,10 +124,12 @@ public class ProcessFactory {
             crud -> f2e(crud, typeId, entity.getId().getSeqNo(), entity.getCrudPoints().size() + 1))
         .forEach(entity.getCrudPoints()::add);
 
-    return entity;
+    aggregate.setMethod(entity);
+
+    return aggregate;
   }
 
-  void collectMethodCall(MethodFdo methodF, MethodEntity methodE) {
+  void collectMethodCall(MethodFdo methodF, MethodEntity methodE, MethodAggregate aggregate) {
 
     Map<MethodCallFdo, MethodCallEntity> fdo2entity = new HashMap<>();
     Map<String, MethodCallEntity> id2entity = new HashMap<>();
@@ -126,6 +138,7 @@ public class ProcessFactory {
       MethodCallEntity methodCallE = f2e(methodCallF, methodE);
 
       methodE.getMethodCalls().add(methodCallE);
+      aggregate.getMethodCalls().add(methodCallE);
 
       fdo2entity.put(methodCallF, methodCallE);
       id2entity.put(methodCallF.getId(), methodCallE);
@@ -210,11 +223,34 @@ public class ProcessFactory {
     entity.setLineNo(flowStatementF.getLineNo());
     entity.setMethod(methodE);
 
-    if (flowStatementF.getParent() != null) {
-      FlowStatementEntity parent = f2e(flowStatementF.getParent(), methodE);
-      entity.setFlowStatement(parent);
-    }
-
     return entity;
+  }
+
+  void collectFlowStatement(MethodFdo methodF, MethodEntity methodE, MethodAggregate aggregate) {
+    Map<FlowStatementFdo, FlowStatementEntity> flowStatementEntity = new HashMap<>();
+
+    List<FlowStatementFdo> flowList = methodF.getFlowStatements();
+    if (flowList != null) {
+      for (FlowStatementFdo fs : flowList) {
+        FlowStatementEntity e = new FlowStatementEntity();
+        e.setId(ShortUuidUtils.generate());
+        e.setKind(fs.getKind());
+        e.setContent(fs.getContent());
+        e.setLineNo(fs.getLineNo());
+        e.setMethod(methodE);
+        flowStatementEntity.put(fs, e);
+        aggregate.getFlowStatements().add(e);
+      }
+
+      for (FlowStatementFdo fs : flowList) {
+        if (fs.getParent() != null) {
+          FlowStatementEntity flowStatementE = flowStatementEntity.get(fs);
+          FlowStatementEntity parent = flowStatementEntity.get(fs.getParent());
+          if (parent != null) {
+            flowStatementE.setFlowStatement(parent);
+          }
+        }
+      }
+    }
   }
 }

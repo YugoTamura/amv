@@ -4,8 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import dev.aulait.amv.arch.async.AsyncExecStatus;
 import dev.aulait.amv.arch.async.AsyncExecWsClient;
+import dev.aulait.amv.arch.exec.ExecUtils;
 import dev.aulait.amv.arch.test.TestConfig;
-import dev.aulait.amv.arch.util.ExecUtils;
 import dev.aulait.amv.arch.util.JenvUtils;
 import dev.aulait.amv.interfaces.project.CodebaseClient;
 import dev.aulait.amv.interfaces.project.CodebaseDto;
@@ -44,11 +44,11 @@ class DemoScenarioIT {
 
     if (TestConfig.getInstance().isUsingContainer()) {
       String dockerPsCmd = "docker ps -q -f \"name=amv-container-back\"";
-      String containerId = ExecUtils.execWithResult(dockerPsCmd, Map.of()).getOut();
+      String containerId = ExecUtils.execWithStdout(dockerPsCmd, Map.of());
       String dockerCmd =
           String.format(
               "docker exec -u 0 %s chown -R jboss:jboss /home/jboss/.gradle", containerId);
-      ExecUtils.execWithResult(dockerCmd, Map.of());
+      ExecUtils.exec(dockerCmd, Map.of());
     }
 
     String codebaseId =

@@ -1,7 +1,7 @@
 package dev.aulait.amv.arch.util;
 
+import dev.aulait.amv.arch.exec.ExecUtils;
 import dev.aulait.amv.arch.file.FileUtils;
-import dev.aulait.amv.arch.util.ExecUtils.ExecResultVo;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
@@ -42,13 +42,10 @@ public class GradleUtils {
 
     String command = decideCommand(projectDir);
 
-    ExecResultVo result =
-        ExecUtils.execWithResult(
-            command + " -q -b ${buildFile} assemble printClasspath",
-            Map.of("buildFile", buildExtFile.getFileName()),
-            projectDir);
-
-    return result.getOut();
+    return ExecUtils.execWithStdout(
+        command + " -q -b ${buildFile} assemble printClasspath",
+        Map.of("buildFile", buildExtFile.getFileName()),
+        projectDir);
   }
 
   static String decideCommand(Path buildFileDir) {
