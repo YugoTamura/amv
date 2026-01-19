@@ -8,6 +8,5 @@ import lombok.Data;
 @Data
 public class SourceFileAggregate {
   private SourceFileEntity sourceFile;
-  private List<TypeEntity> types = new ArrayList<>();
-  private List<FlowStatementEntity> flowStatements = new ArrayList<>();
+  private List<TypeAggregate> types = new ArrayList<>();
 }

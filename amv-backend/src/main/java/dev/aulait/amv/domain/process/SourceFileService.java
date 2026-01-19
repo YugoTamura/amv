@@ -4,6 +4,8 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import java.util.Comparator;
+import java.util.HashSet;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 
 @ApplicationScoped
@@ -18,26 +20,24 @@ public class SourceFileService {
   @Transactional
   public void save(SourceFileAggregate sourceFile) {
     em.persist(sourceFile.getSourceFile());
-    sourceFile.getTypes().forEach(this::saveDeclaration);
 
-    if (sourceFile.getFlowStatements() != null) {
-      sourceFile.getFlowStatements().forEach(this::saveDeclaration);
-    }
+    sourceFile.getTypes().forEach(this::saveDeclaration);
   }
 
   @Transactional
-  public int saveDeclaration(TypeEntity type) {
-    em.persist(type);
+  public int saveDeclaration(TypeAggregate typeAggregate) {
+    em.persist(typeAggregate.getType());
 
-    fieldRepository.saveAll(type.getFields());
+    fieldRepository.saveAll(typeAggregate.getType().getFields());
 
-    type.getMethods().stream().forEach(this::saveDeclaration);
+    typeAggregate.getMethods().forEach(this::saveDeclaration);
 
     return 1;
   }
 
   @Transactional
-  public int saveDeclaration(MethodEntity method) {
+  public int saveDeclaration(MethodAggregate methodAggregate) {
+    MethodEntity method = methodAggregate.getMethod();
     em.persist(method);
 
     if (method.getEntryPoint() != null) {
@@ -46,27 +46,28 @@ public class SourceFileService {
 
     methodParamRepository.saveAll(method.getMethodParams());
 
-    method.getMethodCalls().stream()
+    var persistedFlowIds = new HashSet<String>();
+    methodAggregate.getFlowStatements().forEach(fs -> saveDeclaration(fs, persistedFlowIds));
+
+    methodAggregate.getMethodCalls().stream()
         .sorted(Comparator.comparing(mc -> mc.getId().getSeqNo()))
         .forEach(
             mc -> {
+              saveDeclaration(mc.getFlowStatement(), persistedFlowIds);
               em.persist(mc);
             });
-
     crudPointRepository.saveAll(method.getCrudPoints());
-
     return 1;
   }
 
-  public int saveDeclaration(FlowStatementEntity flowStatement) {
-    if (flowStatement == null) {
-      return 0;
-    }
+  private void saveDeclaration(FlowStatementEntity flow, Set<String> persistedIds) {
+    if (flow == null) return;
 
-    if (flowStatement.getFlowStatement() != null) {
-      saveDeclaration(flowStatement.getFlowStatement());
+    String id = flow.getId();
+    if (id != null && !persistedIds.add(id)) {
+      return;
     }
-    em.persist(flowStatement);
-    return 1;
+    saveDeclaration(flow.getFlowStatement(), persistedIds);
+    em.persist(flow);
   }
 }
