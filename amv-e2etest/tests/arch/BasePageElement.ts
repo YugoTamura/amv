@@ -107,11 +107,11 @@ export default abstract class BasePageElement {
 
   protected async isLinkVisible(selector: string, text: string) {
     await this.page.waitForSelector(selector);
-    return this.page.locator(`a:text-is("${text}")`).isVisible();
+    return this.page.locator(`:nth-match(a:text-is("${text}"), 1)`).isVisible();
   }
 
   protected async clickLink(text: string) {
-    await this.click(`a:text-is("${text}")`);
+    await this.click(`:nth-match(a:text-is("${text}"), 1)`);
   }
 
   protected async expectExist(selector: string) {
