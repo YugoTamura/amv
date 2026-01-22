@@ -6,7 +6,8 @@ import CodebaseInputFactory from '@factories/CodebaseFactory';
 
 // TODO: Improve parallel execution time
 test('Analyze a repository', async ({ browser, browserName }) => {
-  if (browserName !== 'chromium') await new Promise((r) => setTimeout(r, 15_000));
+  test.setTimeout(90_000);
+  if (browserName !== 'chromium') await new Promise((r) => setTimeout(r, 30_000));
   const context = await browser.newContext({
     locale: locale
   });

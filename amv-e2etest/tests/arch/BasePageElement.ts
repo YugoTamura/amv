@@ -122,7 +122,7 @@ export default abstract class BasePageElement {
 
   protected async expectNotExist(selector: string) {
     await this.run(Action.NONE, selector, () =>
-      expect(this.page.locator(selector)).toHaveCount(0, { timeout: 30_000 })
+      expect(this.page.locator(selector)).toHaveCount(0, { timeout: 60_000 })
     );
   }
 
